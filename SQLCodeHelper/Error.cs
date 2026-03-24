@@ -7,49 +7,66 @@ using System.Windows.Forms;
 
 namespace SQLCodeHelper
 {
-    internal class Error
+    public class Error
     {
-        private string AllAlf = "=.,()+*λμ0123456789абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        private string yourmistake;
-        // проверка на знание правил 1 класса (примеры со кобками), правил SQL и использования λ-свёрнутых уравнений
-        // в разработке
-        public bool Error_log(string NameBase, string eq, string TableAndKeys)
+        public void Error_log(string baseName, string equation, DataGridView dgv, out string e, out bool b)
         {
-            bool e = true;
-            int error = Record_check(NameBase, eq, TableAndKeys);
-            e = Error_list(error, e);
-            if (error == 0)
-                e = false;
-            return e;
-        }
-        private int Record_check(string NameBase, string eq, string TableAndKeys)
-        {
-            int p = 0;
-            //Здесь будет анализ вводимых данны, но пока пусто :)
+            b = false; e = ""; // начальные значения: Ошибок нет
 
-            return p;
+
+            //if (string.IsNullOrEmpty(equation))
+            //    return ShowError("Введите уравнение");
+
+            // 2. Проверка скобок
+            //if (!CheckBrackets(equation))
+            //    return ShowError("Неверная расстановка скобок");
+
+            // 3. Проверка существования таблиц
+            //var tables = ExtractTables(equation);
+            //foreach (var table in tables)
+            //{
+            //    if (!TableExistsInDGV(table, dgv))
+            //        return ShowError($"Таблица '{table}' не найдена в метаданных");
+            //}
+
+
         }
-        public bool Error_list(int err, bool e)
+
+        private bool CheckBrackets(string equation)
         {
-            if (err == 1)
-                yourmistake = "Не правильное расположение скобок\n" +
-                    "Incorrect placement of brackets";
-            else if (err == 2)
-                yourmistake = "Использован недопустимый символ\n" +
-                    "Invalid symbol used";
-            else if (err == 3)
-                yourmistake = "Символ +,* не может находиться в начале или конце уравнения\n" +
-                    "The symbol +,* cannot be at the beginning or end of the equation";
-            else if (err == 4)
-                yourmistake = "Символ +,* должен находиться между операндами (переменными), перед '(' или после ')'\n" +
-                    "The symbol +,* must be between the operands (variables), before '(' or after ')'";
-            else if (err == 5)
-                yourmistake = "Введите уравнение для выполнения обработки(Пример: l,Mat(Ar.Prod*C.Prod)+Q.Prod)\n" +
-                    "Enter the equation to perform the processing(Example: l,Mat(Ar.Prod*C.Prod)+Q.Prod)";
-            else if (err == 6)
-                yourmistake = "В скобках должно быть осуществленно хотя бы 1 действие\n" +
-                    "";
-            return e;
+            int balance = 0;
+            foreach (char c in equation)
+            {
+                if (c == '(') balance++;
+                if (c == ')') balance--;
+                if (balance < 0) return false;
+            }
+            return balance == 0;
+        }
+
+        private List<string> ExtractTables(string equation)
+        {
+            // Убираем операторы и скобки, оставляем только идентификаторы таблиц
+            var operators = new[] { '+', '-', '*', ':', '(', ')', '/', ' ' };
+            var parts = equation.Split(operators, StringSplitOptions.RemoveEmptyEntries);
+            return parts.Where(p => !int.TryParse(p, out _)).Distinct().ToList();
+        }
+
+        private bool TableExistsInDGV(string tableName, DataGridView dgv)
+        {
+            // Проверяем, есть ли таблица в заголовках столбцов
+            for (int col = 1; col < dgv.ColumnCount; col++)
+            {
+                if (dgv.Rows[0].Cells[col].Value?.ToString() == tableName)
+                    return true;
+            }
+            return false;
+        }
+
+        private bool ShowError(string message)
+        {
+            MessageBox.Show(message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return true;
         }
     }
 }
