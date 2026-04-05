@@ -436,7 +436,7 @@ FROM {sb}) AS {rightAlias}";
                     foreach (var col in leftOpCols)
                         finalSelectCols.Add($@"
     CASE WHEN COUNT(CASE WHEN {localName}.{col} = 0 THEN 1 END) > 0 THEN 0
-         ELSE EXP(SUM(LOG(ABS(NULLIF({localName}.{col}, 0))))) *
+         ELSE ROUND(EXP(SUM(LOG(ABS(NULLIF({localName}.{col}, 0))))), 6) *
               CASE WHEN SUM(CASE WHEN {localName}.{col} < 0 THEN 1 ELSE 0 END) % 2 = 1 THEN -1 ELSE 1 END
     END AS {col}");
                 }
@@ -476,6 +476,7 @@ GROUP BY {groupBy}";
             string localName = newTableName;
             var common = leftKeyCols.Intersect(rightKeyCols).ToList();
 
+            var rightAndLeft = new Dictionary<string, string>();
             var onClauses = new List<string>();
             var cLeft = new HashSet<string>();
             var cRight = new HashSet<string>();
@@ -487,10 +488,11 @@ GROUP BY {groupBy}";
             //Обработка правил в порядке их появления
             foreach (var (type, value) in rules)
             {
-                // Устанавливаем флаги
+                // Устанавливаем флаги l и L
                 if (type == "l") hasL = true;
                 if (type == "L") hasBigL = true;
 
+                
                 // Обработка правила
                 if (!value.Contains('='))
                 {
@@ -531,8 +533,15 @@ GROUP BY {groupBy}";
                     if (!rightKeyCols.Contains(rightElement))
                         continue;
 
+                    if (type == "l")
+                    {
+                        // Запоминаем отображение правого столбца на левый
+                        if (!rightAndLeft.ContainsKey(rightElement))
+                            rightAndLeft[rightElement] = leftElement;
+                    }
                     // Всё корректно — добавляем условие JOIN
                     onClauses.Add($"{leftParts[0]}.{leftElement} = {rightParts[0]}.{rightElement}");
+                    //Исключаем ключи при типе L
                     if (type == "L")
                     {
                         cLeft.Add(leftElement);
@@ -558,7 +567,7 @@ GROUP BY {groupBy}";
             common = leftK.Intersect(rightK).ToList();
             var leftOnly = leftK.Except(common).ToList();
             var rightOnly = rightK.Except(common).ToList();
-
+            
             List<string> allCols;
             string selectCols = "";
             var joinType = op.Join.Value;
@@ -571,12 +580,16 @@ GROUP BY {groupBy}";
             else if (joinType == JoinKind.Right)
             {
                 allCols = common.Concat(rightOnly).ToList();
-                if (common.Count > 0) 
-                    selectCols = string.Join(",", common.Select(col => $"{leftParts[0]}.{col}"));
-                selectCols = string.Join(",", rightOnly.Select(col => $"{rightParts[0]}.{col}"));
+                selectCols += string.Join(",", allCols.Select(col => $"{rightParts[0]}.{col}"));
             }
             else // Inner
             {
+                //проверим соответствие в l
+                foreach (var pair in rightAndLeft)
+                    // Если оба столбца ещё присутствуют в соответствующих списках
+                    if (leftK.Contains(pair.Value) && rightK.Contains(pair.Key))
+                        common.Add(pair.Value);   // левый столбец становится общим
+                
                 allCols = common.ToList();
                 selectCols = string.Join(",", common.Select(col => $"{leftParts[0]}.{col}"));
             }
@@ -622,10 +635,11 @@ GROUP BY {groupBy}";
             };
 
             string sql = $@"SELECT {selectCols}{dot}{aggCols}
-        FROM {fb} {joinKeyword} {sb}
-        ON {joinOn}";
+FROM {fb} {joinKeyword} {sb}
+ON {joinOn}";
             if (!string.IsNullOrEmpty(selectCols))
-            sql += $@"GROUP BY {selectCols}";
+            sql += $@"
+GROUP BY {selectCols}";
 
             resultColumns = allCols.Concat(leftOpCols).ToArray();
             return sql;
