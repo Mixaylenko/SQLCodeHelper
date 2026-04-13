@@ -328,10 +328,10 @@ namespace SQLCodeHelper
             this.GeneralPage.Controls.Add(this.label3);
             this.GeneralPage.Controls.Add(this.label4);
             this.GeneralPage.Controls.Add(this.label1);
-            this.GeneralPage.Location = new System.Drawing.Point(87, 4);
+            this.GeneralPage.Location = new System.Drawing.Point(160, 4);
             this.GeneralPage.Name = "GeneralPage";
             this.GeneralPage.Padding = new System.Windows.Forms.Padding(3);
-            this.GeneralPage.Size = new System.Drawing.Size(1328, 703);
+            this.GeneralPage.Size = new System.Drawing.Size(1255, 703);
             this.GeneralPage.TabIndex = 0;
             this.GeneralPage.Text = "Обработка данных без подключения";
             this.GeneralPage.UseVisualStyleBackColor = true;

@@ -100,6 +100,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExportToSqlDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="ConSQL.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="ExportHelper.cs" />

@@ -1,10 +1,8 @@
-﻿using DocumentFormat.OpenXml.ExtendedProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.ConstrainedExecution;
 using System.Windows.Forms;
 using static SQLCodeHelper.WorkSQL;
 
@@ -73,7 +71,8 @@ namespace SQLCodeHelper
             toolStrip1.Dock = DockStyle.Top;
             toolStrip1.Items.Add(new ToolStripButton("Подключится", null, Connect_button_Click));
             toolStrip1.Items.Add(new ToolStripButton("Обновить", null, Refresh_Click));
-            toolStrip1.Items.Add(new ToolStripButton("Экспорт данных таблиц", null, Export_Click));
+            toolStrip1.Items.Add(new ToolStripButton("Экспорт данных таблиц в Excel", null, Export_Click));
+            toolStrip1.Items.Add(new ToolStripButton("Экспорт данных таблиц в SQL", null, ExportSQL_Click));
             toolStrip1.Items.Add(new ToolStripSeparator());
 
             // Перечень используемых таблиц
@@ -358,7 +357,18 @@ namespace SQLCodeHelper
                 ExportHelper.ExportToExcel((DataTable)TableAndKeys.DataSource);
             }
         }
-
+        private void ExportSQL_Click(object sender, EventArgs e)
+        {
+            if (TableAndKeys.DataSource != null && TableAndKeys.DataSource is DataTable dt)
+            {
+                // Передаём строку подключения через метод GetConnectionString()
+                ExportHelper.ExportToSQL(dt, con.GetConnectionString());
+            }
+            else
+            {
+                MessageBox.Show("Нет данных для экспорта.", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
         private void tabControl_DrawItem(Object sender, System.Windows.Forms.DrawItemEventArgs e)
         {
             Graphics g = e.Graphics;
@@ -409,5 +419,6 @@ namespace SQLCodeHelper
                 }
             }
         }
+
     }
 }

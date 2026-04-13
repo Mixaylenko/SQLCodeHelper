@@ -75,7 +75,10 @@ public class ConSQL
     private string serverVersion;
     private List<DatabaseInfo> cachedDatabases = new List<DatabaseInfo>();
     private DateTime lastCacheUpdate = DateTime.MinValue;
-
+    public string GetConnectionString()
+    {
+        return connectionString;
+    }
     public void Conn(string connStr)
     {
         connectionString = connStr;
