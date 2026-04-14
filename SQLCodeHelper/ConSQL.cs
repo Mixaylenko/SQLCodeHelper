@@ -487,7 +487,88 @@ public class ConSQL
 
         return procedures;
     }
+    /// <summary>
+    /// Создаёт новую базу данных.
+    /// </summary>
+    public bool CreateDatabase(string databaseName)
+    {
+        try
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = $"CREATE DATABASE [{databaseName}]";
+                using (SqlCommand cmd = new SqlCommand(query, connection))
+                {
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            RefreshCache(); // обновляем кэш
+            return true;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Ошибка создания базы данных: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return false;
+        }
+    }
 
+    /// <summary>
+    /// Удаляет базу данных.
+    /// </summary>
+    public bool DropDatabase(string databaseName)
+    {
+        try
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                // Закрываем все соединения к БД, чтобы можно было удалить
+                string setSingleUser = $@"
+                USE master;
+                ALTER DATABASE [{databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+                DROP DATABASE [{databaseName}];";
+                using (SqlCommand cmd = new SqlCommand(setSingleUser, connection))
+                {
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            RefreshCache();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Ошибка удаления базы данных: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Удаляет таблицу из указанной базы данных.
+    /// </summary>
+    public bool DropTable(string databaseName, string tableName)
+    {
+        try
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                // Переключаемся на нужную БД
+                connection.ChangeDatabase(databaseName);
+                string query = $"DROP TABLE [{tableName}]";
+                using (SqlCommand cmd = new SqlCommand(query, connection))
+                {
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Ошибка удаления таблицы: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return false;
+        }
+    }
     public DataTable ExecuteQuery(string databaseName, string query)
     {
         DataTable result = new DataTable();

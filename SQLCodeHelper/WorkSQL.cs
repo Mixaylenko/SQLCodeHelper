@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Windows.Forms;
 
 namespace SQLCodeHelper
 {
@@ -399,6 +400,11 @@ namespace SQLCodeHelper
                         resultTable[i] = newValue;
                 }
             }
+            //Проверка на рассинхронизацию таблиц
+            var mExcept = resultTable.Except(rightParts).ToArray();
+            resultTable = resultTable.Except(mExcept).ToArray();
+            leftKeyCols = leftKeyCols.Except(mExcept).ToArray();
+
             // Левая часть UNION ALL
             var leftSelectCols = new List<string>();
             foreach (var col in leftKeyCols)
@@ -640,7 +646,6 @@ GROUP BY {selectCols}";
             resultColumns = allCols.Concat(leftOpCols).ToArray();
             return sql;
         }
-
 
     }
 }

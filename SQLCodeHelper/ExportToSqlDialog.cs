@@ -65,19 +65,33 @@ public partial class ExportToSqlDialog : Form
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
-                DataTable dt = conn.GetSchema("Databases");
+                // Исключаем системные БД (database_id > 4)
+                string query = @"
+                SELECT name, state, state_desc 
+                FROM sys.databases 
+                WHERE database_id > 4 
+                ORDER BY name";
+                DataTable dt = new DataTable();
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                {
+                    da.Fill(dt);
+                }
+
                 List<string> databases = new List<string>();
                 foreach (DataRow row in dt.Rows)
                 {
-                    string dbName = row["database_name"].ToString();
-                    // Проверяем состояние базы (восстановление и т.п.)
-                    string state = GetDatabaseState(conn, dbName);
+                    string dbName = row["name"].ToString();
+                    int stateCode = Convert.ToInt32(row["state"]);
+                    string stateDesc = row["state_desc"].ToString();
+
                     string displayName = dbName;
-                    if (state == "RESTORING")
+                    // Состояние 6 = RESTORING (ожидает восстановления) – не зависит от языка
+                    if (stateCode == 6)
                         displayName = dbName + " (ожидает восстановления)";
-                    else if (state == "RECOVERING")
+                    else if (stateDesc == "RECOVERING")
                         displayName = dbName + " (восстанавливается)";
-                    else if (state == "OFFLINE")
+                    else if (stateDesc == "OFFLINE")
                         displayName = dbName + " (OFFLINE)";
 
                     databases.Add(displayName);
@@ -87,7 +101,7 @@ public partial class ExportToSqlDialog : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Ошибка загрузки списка баз данных: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"Ошибка загрузки списка баз данных: {ex.Message}");
         }
     }
 

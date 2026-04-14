@@ -3,7 +3,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Text;
 using System.Windows.Forms;
-using ClosedXML.Excel; // Не забудьте установить NuGet-пакет ClosedXML
+using ClosedXML.Excel; 
 
 public static class ExportHelper
 {

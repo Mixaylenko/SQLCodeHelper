@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using Microsoft.VisualBasic;
 using static SQLCodeHelper.WorkSQL;
 
 namespace SQLCodeHelper
@@ -20,6 +21,7 @@ namespace SQLCodeHelper
             InitializeComponent();
             tabControl.DrawItem += new DrawItemEventHandler(tabControl_DrawItem);
             ConfigureInterface();
+            SetupGridContextMenus();
         }
         //Interface
         private void ConfigureInterface()
@@ -47,6 +49,11 @@ namespace SQLCodeHelper
             treeView1.AfterSelect += TreeView1_AfterSelect;
             treeView1.BeforeExpand += TreeView1_BeforeExpand;
 
+            // Контекстное меню для дерева
+            ContextMenuStrip treeMenu = new ContextMenuStrip();
+            treeMenu.Items.Add("Удалить", null, DeleteTreeNode_Click);
+            treeView1.ContextMenuStrip = treeMenu;
+
             // Настройка TabControl
             tabControl1.Dock = DockStyle.Fill;
 
@@ -73,6 +80,7 @@ namespace SQLCodeHelper
             toolStrip1.Items.Add(new ToolStripButton("Обновить", null, Refresh_Click));
             toolStrip1.Items.Add(new ToolStripButton("Экспорт данных таблиц в Excel", null, Export_Click));
             toolStrip1.Items.Add(new ToolStripButton("Экспорт данных таблиц в SQL", null, ExportSQL_Click));
+            toolStrip1.Items.Add(new ToolStripButton("Создать БД", null, CreateDatabase_Click));
             toolStrip1.Items.Add(new ToolStripSeparator());
 
             // Перечень используемых таблиц
@@ -317,7 +325,89 @@ namespace SQLCodeHelper
                 e.Node.Nodes.Add(structureNode);
             }
         }
+        /// <summary>Создание новой базы данных</summary>
+        private void CreateDatabase_Click(object sender, EventArgs e)
+        {
+            string dbName = Microsoft.VisualBasic.Interaction.InputBox("Введите имя новой базы данных:", "Создание БД", "");
+            if (string.IsNullOrWhiteSpace(dbName))
+                return;
 
+            // Простейшая валидация имени
+            if (dbName.IndexOfAny(System.IO.Path.GetInvalidFileNameChars()) >= 0 || dbName.Contains(" "))
+            {
+                MessageBox.Show("Имя базы данных содержит недопустимые символы или пробелы.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (con.CreateDatabase(dbName))
+            {
+                LoadDatabaseTree(); // перезагружаем дерево
+                MessageBox.Show($"База данных '{dbName}' успешно создана.", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        /// <summary>Обработчик контекстного меню (удаление)</summary>
+        private void DeleteTreeNode_Click(object sender, EventArgs e)
+        {
+            TreeNode selectedNode = treeView1.SelectedNode;
+            if (selectedNode == null) return;
+
+            // Удаление базы данных
+            if (selectedNode.Tag is DatabaseInfo db)
+            {
+                DialogResult result = MessageBox.Show($"Вы действительно хотите удалить базу данных '{db.Name}'?\nЭто действие необратимо!",
+                                                        "Подтверждение удаления",
+                                                        MessageBoxButtons.YesNo,
+                                                        MessageBoxIcon.Warning);
+                if (result == DialogResult.Yes)
+                {
+                    if (con.DropDatabase(db.Name))
+                    {
+                        LoadDatabaseTree();
+                        // Очищаем отображение, если активная БД была удалена
+                        if (labelActionT.Text.Contains(db.Name))
+                            labelActionT.Text = "активная база данных: не выбрана";
+                        MessageBox.Show($"База данных '{db.Name}' удалена.", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+            // Удаление таблицы
+            else if (selectedNode.Tag is TableInfo table)
+            {
+                DialogResult result = MessageBox.Show($"Удалить таблицу '{table.Name}' из базы '{table.DatabaseName}'?",
+                                                        "Подтверждение удаления",
+                                                        MessageBoxButtons.YesNo,
+                                                        MessageBoxIcon.Warning);
+                if (result == DialogResult.Yes)
+                {
+                    if (con.DropTable(table.DatabaseName, table.Name))
+                    {
+                        // Обновляем дерево: перезагружаем узел базы данных
+                        TreeNode dbNode = selectedNode.Parent?.Parent; // папка "Таблицы" -> узел БД
+                        if (dbNode != null && dbNode.Tag is DatabaseInfo dbInfo)
+                        {
+                            // Находим папку "Таблицы" и перезагружаем её
+                            TreeNode tablesNode = dbNode.Nodes.Cast<TreeNode>().FirstOrDefault(n => n.Tag as string == "TablesFolder");
+                            if (tablesNode != null)
+                            {
+                                LoadTablesForDatabase(dbInfo, tablesNode);
+                            }
+                        }
+                        // Очищаем DataGridView, если отображалась удалённая таблица
+                        if (TableAndKeys.DataSource != null && TableAndKeys.DataSource is DataTable dt)
+                        {
+                            // Просто сбросим источник
+                            TableAndKeys.DataSource = null;
+                        }
+                        MessageBox.Show($"Таблица '{table.Name}' удалена.", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Удаление этого элемента не поддерживается.", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
         private void ShowDatabaseInfo(DatabaseInfo db)
         {
             DataTable dt = new DataTable();
@@ -420,5 +510,145 @@ namespace SQLCodeHelper
             }
         }
 
+        // При инициализации формы или после привязки данных
+        private void SetupGridContextMenus()
+        {
+            // Меню для заголовков столбцов
+            ContextMenuStrip columnMenu = new ContextMenuStrip();
+            columnMenu.Items.Add("Добавить столбец", null, AddColumn_Click);
+            columnMenu.Items.Add("Переименовать столбец", null, RenameColumn_Click);
+            columnMenu.Items.Add("Удалить столбец", null, DeleteColumn_Click);
+
+            TableAndKeys.ColumnHeaderMouseClick += (s, e) =>
+            {
+                if (e.Button == MouseButtons.Right && e.ColumnIndex >= 0)
+                {
+                    TableAndKeys.CurrentCell = TableAndKeys.Rows[0].Cells[e.ColumnIndex];
+                    columnMenu.Show(TableAndKeys, e.Location);
+                }
+            };
+
+            // Меню для строк (по клику на ячейку)
+            ContextMenuStrip rowMenu = new ContextMenuStrip();
+            rowMenu.Items.Add("Удалить выбранную строку", null, DeleteRow_Click);
+
+            TableAndKeys.CellMouseClick += (s, e) =>
+            {
+                if (e.Button == MouseButtons.Right && e.RowIndex >= 0 && e.ColumnIndex >= 0)
+                {
+                    TableAndKeys.ClearSelection();
+                    TableAndKeys.Rows[e.RowIndex].Selected = true;
+                    TableAndKeys.CurrentCell = TableAndKeys.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                    rowMenu.Show(TableAndKeys, e.Location);
+                }
+            };
+        }
+
+        private void AddColumn_Click(object sender, EventArgs e)
+        {
+            string newColumnName = ShowInputDialog("Введите имя нового столбца:", "Добавление столбца");
+            if (string.IsNullOrWhiteSpace(newColumnName)) return;
+
+            if (TableAndKeys.DataSource is DataTable dt)
+            {
+                dt.Columns.Add(newColumnName, typeof(string));
+            }
+            else
+            {
+                DataGridViewTextBoxColumn column = new DataGridViewTextBoxColumn
+                {
+                    Name = newColumnName,
+                    HeaderText = newColumnName,
+                    SortMode = DataGridViewColumnSortMode.Automatic
+                };
+                TableAndKeys.Columns.Add(column);
+            }
+        }
+
+        private void RenameColumn_Click(object sender, EventArgs e)
+        {
+            if (TableAndKeys.CurrentCell == null) return;
+            DataGridViewColumn column = TableAndKeys.CurrentCell.OwningColumn;
+            string newName = ShowInputDialog("Введите новое имя столбца:", "Переименование", column.HeaderText);
+            if (string.IsNullOrWhiteSpace(newName)) return;
+
+            column.HeaderText = newName;
+            if (TableAndKeys.DataSource is DataTable dt && dt.Columns.Contains(column.Name))
+            {
+                dt.Columns[column.Name].ColumnName = newName;
+            }
+            column.Name = newName;
+        }
+
+        private void DeleteColumn_Click(object sender, EventArgs e)
+        {
+            if (TableAndKeys.CurrentCell == null) return;
+            DataGridViewColumn column = TableAndKeys.CurrentCell.OwningColumn;
+
+            // Защита от удаления важных столбцов (при необходимости)
+            if (column.Name == "ID" || column.ReadOnly)
+            {
+                MessageBox.Show("Этот столбец нельзя удалить.", "Предупреждение", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            DialogResult result = MessageBox.Show($"Удалить столбец '{column.HeaderText}'?", "Подтверждение",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (result == DialogResult.Yes)
+            {
+                if (TableAndKeys.DataSource is DataTable dt && dt.Columns.Contains(column.Name))
+                {
+                    dt.Columns.Remove(column.Name);
+                }
+                else
+                {
+                    TableAndKeys.Columns.Remove(column);
+                }
+            }
+        }
+        private void DeleteRow_Click(object sender, EventArgs e)
+        {
+            if (TableAndKeys.SelectedRows.Count == 0) return;
+            DataGridViewRow row = TableAndKeys.SelectedRows[0];
+            if (row.IsNewRow) return; // нельзя удалить строку для новых записей
+
+            DialogResult result = MessageBox.Show("Удалить выбранную строку?", "Подтверждение",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (result == DialogResult.Yes)
+            {
+                if (TableAndKeys.DataSource is DataTable dt)
+                {
+                    // Удаляем из источника данных
+                    DataRowView drv = (DataRowView)row.DataBoundItem;
+                    dt.Rows.Remove(drv.Row);
+                }
+                else
+                {
+                    TableAndKeys.Rows.Remove(row);
+                }
+            }
+        }
+        // Простой диалог ввода (если нет Microsoft.VisualBasic)
+        private string ShowInputDialog(string prompt, string title, string defaultValue = "")
+        {
+            using (Form form = new Form())
+            {
+                Label label = new Label() { Text = prompt, Left = 10, Top = 10, Width = 260 };
+                TextBox textBox = new TextBox() { Left = 10, Top = 35, Width = 260, Text = defaultValue };
+                Button okButton = new Button() { Text = "OK", Left = 110, Top = 70, Width = 70, DialogResult = DialogResult.OK };
+                Button cancelButton = new Button() { Text = "Отмена", Left = 190, Top = 70, Width = 70, DialogResult = DialogResult.Cancel };
+                form.Controls.AddRange(new Control[] { label, textBox, okButton, cancelButton });
+                form.ClientSize = new System.Drawing.Size(290, 110);
+                form.Text = title;
+                form.FormBorderStyle = FormBorderStyle.FixedDialog;
+                form.StartPosition = FormStartPosition.CenterParent;
+                form.AcceptButton = okButton;
+                form.CancelButton = cancelButton;
+
+                if (form.ShowDialog() == DialogResult.OK)
+                    return textBox.Text;
+                return null;
+            }
+        }
     }
 }
