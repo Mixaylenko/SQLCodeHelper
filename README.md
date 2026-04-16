@@ -35,14 +35,14 @@ L/key1,key2,m/key3(уравнение)
 операнды записываются как table.key1,...,keyi
 
 Пример:
-L/ID,l/Region(Product.Price*/Discount.DiscountRate)
+L/ID,l/Region(Product.Price/х/Discount.DiscountRate)
 
 
 Если нужно сменить ключ перед новым действием, то предыдущий блок возьмите в скобки, поставьте точку и укажите новый ключ:
 (блок1).NewKey блок2
 
 Пример:
-L/ID,l/Region,Category(Product.Price*/Discount.DiscountRate).Cost*/DiscountMaterial.DiscountRate
+L/ID,l/Region,Category(Product.Price/х/Discount.DiscountRate).Costх/DiscountMaterial.DiscountRate
 
 для проверки данные таблицы (для примера в автономном режиме - 2 вкладка):
 Product/ID,Region,Category,Name,Price,Cost,Weight
