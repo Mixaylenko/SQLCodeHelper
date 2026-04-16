@@ -34,7 +34,7 @@ L/key1,key2,m/key3(уравнение)
 операнды записываются как table.key1,...,keyi
 
 Пример:
-L/ID,l/Region,Category(Product.Price*/Discount.DiscountRate)
+L/ID,l/Region(Product.Price*/Discount.DiscountRate)
 
 
 Если нужно сменить ключ перед новым действием, то предыдущий блок возьмите в скобки, поставьте точку и укажите новый ключ:
