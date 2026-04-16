@@ -77,13 +77,14 @@ public partial class ExportToSqlDialog : Form
                 {
                     da.Fill(dt);
                 }
-
+                string dbName, stateDesc;
+                int stateCode;
                 List<string> databases = new List<string>();
                 foreach (DataRow row in dt.Rows)
                 {
-                    string dbName = row["name"].ToString();
-                    int stateCode = Convert.ToInt32(row["state"]);
-                    string stateDesc = row["state_desc"].ToString();
+                    dbName = row["name"].ToString();
+                    stateCode = Convert.ToInt32(row["state"]);
+                    stateDesc = row["state_desc"].ToString();
 
                     string displayName = dbName;
                     // Состояние 6 = RESTORING (ожидает восстановления) – не зависит от языка
@@ -97,6 +98,8 @@ public partial class ExportToSqlDialog : Form
                     databases.Add(displayName);
                 }
                 cmbDatabase.DataSource = databases;
+                dbName = SelectedDatabase;
+                LoadTablesForDatabase(dbName);
             }
         }
         catch (Exception ex)
@@ -147,7 +150,7 @@ public partial class ExportToSqlDialog : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Ошибка загрузки списка таблиц: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show($"Ошибка загрузки списка таблиц: {ex.Message}", "Ошибка", MessageBoxButtons.OK);
         }
     }
 }

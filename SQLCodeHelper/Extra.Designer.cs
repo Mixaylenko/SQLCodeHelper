@@ -123,7 +123,6 @@
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.Connect_button);
             this.Name = "Extra";
-            this.Text = "SearchForm";
             this.ResumeLayout(false);
             this.PerformLayout();
 

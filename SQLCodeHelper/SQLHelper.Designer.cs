@@ -60,10 +60,11 @@ namespace SQLCodeHelper
             this.label1 = new System.Windows.Forms.Label();
             this.HelpPage = new System.Windows.Forms.TabPage();
             this.tabControl2 = new System.Windows.Forms.TabControl();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.Column0 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.tabControl.SuspendLayout();
             this.UpdatePage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -292,7 +293,7 @@ namespace SQLCodeHelper
             // 
             // tabControl1
             // 
-            this.tabControl1.Location = new System.Drawing.Point(58, 16);
+            this.tabControl1.Location = new System.Drawing.Point(84, 20);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(266, 215);
@@ -413,6 +414,15 @@ namespace SQLCodeHelper
             this.tabControl2.Size = new System.Drawing.Size(1249, 697);
             this.tabControl2.TabIndex = 0;
             // 
+            // tabPage3
+            // 
+            this.tabPage3.Location = new System.Drawing.Point(4, 25);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Size = new System.Drawing.Size(1241, 668);
+            this.tabPage3.TabIndex = 2;
+            this.tabPage3.Text = "общее";
+            this.tabPage3.UseVisualStyleBackColor = true;
+            // 
             // tabPage1
             // 
             this.tabPage1.Location = new System.Drawing.Point(4, 25);
@@ -432,15 +442,6 @@ namespace SQLCodeHelper
             this.tabPage2.Text = "без подключения";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
-            // tabPage3
-            // 
-            this.tabPage3.Location = new System.Drawing.Point(4, 25);
-            this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(1241, 668);
-            this.tabPage3.TabIndex = 2;
-            this.tabPage3.Text = "общее";
-            this.tabPage3.UseVisualStyleBackColor = true;
-            // 
             // tabPage4
             // 
             this.tabPage4.Location = new System.Drawing.Point(4, 25);
@@ -449,6 +450,13 @@ namespace SQLCodeHelper
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "от автора";
             this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // Column0
+            // 
+            this.Column0.HeaderText = "";
+            this.Column0.MinimumWidth = 6;
+            this.Column0.Name = "Column0";
+            this.Column0.Width = 125;
             // 
             // SQLHelper
             // 
@@ -517,6 +525,7 @@ namespace SQLCodeHelper
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.TabPage tabPage4;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column0;
     }
 }
 

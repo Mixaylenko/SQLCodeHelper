@@ -112,7 +112,7 @@ public class ConSQL
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Ошибка подключения: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"Ошибка подключения: {ex.Message}", "Ошибка", MessageBoxButtons.OK);
             return false;
         }
     }
@@ -141,7 +141,7 @@ public class ConSQL
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Ошибка при кэшировании баз данных: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"Ошибка при кэшировании баз данных: {ex.Message}", "Ошибка", MessageBoxButtons.OK);
         }
     }
 
@@ -508,7 +508,7 @@ public class ConSQL
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Ошибка создания базы данных: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"Ошибка создания базы данных: {ex.Message}", "Ошибка", MessageBoxButtons.OK);
             return false;
         }
     }
@@ -538,7 +538,7 @@ public class ConSQL
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Ошибка удаления базы данных: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"Ошибка удаления базы данных: {ex.Message}", "Ошибка", MessageBoxButtons.OK);
             return false;
         }
     }
@@ -565,7 +565,7 @@ public class ConSQL
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Ошибка удаления таблицы: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"Ошибка удаления таблицы: {ex.Message}", "Ошибка", MessageBoxButtons.OK);
             return false;
         }
     }
@@ -596,7 +596,7 @@ public class ConSQL
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Ошибка выполнения запроса: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"Ошибка выполнения запроса: {ex.Message}", "Ошибка", MessageBoxButtons.OK);
         }
 
         return result;
@@ -628,7 +628,7 @@ public class ConSQL
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Ошибка выполнения запроса: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"Ошибка выполнения запроса: {ex.Message}", "Ошибка", MessageBoxButtons.OK);
         }
 
         return rowsAffected;
@@ -660,7 +660,7 @@ public class ConSQL
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Ошибка выполнения запроса: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"Ошибка выполнения запроса: {ex.Message}", "Ошибка", MessageBoxButtons.OK);
         }
 
         return result;
@@ -731,7 +731,7 @@ public class ConSQL
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Ошибка при создании таблицы структуры: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"Ошибка при создании таблицы структуры: {ex.Message}", "Ошибка", MessageBoxButtons.OK);
         }
 
         return dt;

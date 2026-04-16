@@ -592,8 +592,15 @@ GROUP BY {groupBy}";
                     if (leftK.Contains(pair.Value) && rightK.Contains(pair.Key))
                         common.Add(pair.Value);   // левый столбец становится общим
                 
-                allCols = common.ToList();
-                selectCols = string.Join(",", common.Select(col => $"{leftParts[0]}.{col}"));
+                allCols = leftOnly.Concat(common.Concat(rightOnly).ToList()).ToList();
+                
+                selectCols = string.Join(",", leftOnly.Select(col => $"{leftParts[0]}.{col}"));
+                if (leftOnly.Count > 0 && common.Count > 0)
+                    selectCols += ",";
+                selectCols += string.Join(",", common.Select(col => $"{leftParts[0]}.{col}"));
+                if (leftOnly.Count > 0 && rightOnly.Count > 0 || common.Count > 0 && rightOnly.Count > 0)
+                    selectCols += ",";
+                selectCols += string.Join(",", rightOnly.Select(col => $"{rightParts[0]}.{col}"));
             }
 
             var aggList = new List<string>();

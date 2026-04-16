@@ -26,6 +26,12 @@ namespace SQLCodeHelper
         //Interface
         private void ConfigureInterface()
         {
+            //настройка таблицы
+            DataTable currentDataTable = new DataTable();
+            currentDataTable.Columns.Add("Column1");
+            TableAndKeys.DataSource = currentDataTable;
+            TableAndKeys.Columns[0].HeaderText = "";
+
             // Настройка разделения окна
             splitContainer1.Dock = DockStyle.Fill;
             splitContainer2.Dock = DockStyle.Fill;
@@ -117,7 +123,7 @@ namespace SQLCodeHelper
             if (string.IsNullOrEmpty(basename))
             {
                 MessageBox.Show("Не выбрана активная база данных. Выберите базу в дереве.",
-                                "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                "Ошибка", MessageBoxButtons.OK);
                 return;
             }
 
@@ -148,7 +154,7 @@ namespace SQLCodeHelper
             err.Error_log(name, Equation, TableAndKeys, out string errorMessage, out bool hasError);
             if (hasError)
             {
-                MessageBox.Show($"Ошибка при построении: {errorMessage}", "Предупреждение", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"Ошибка при построении: {errorMessage}", "Предупреждение", MessageBoxButtons.OK);
                 return false;
             }
             else
@@ -165,13 +171,13 @@ namespace SQLCodeHelper
         {
             if (string.IsNullOrWhiteSpace(sql))
             {
-                MessageBox.Show("Запрос пуст!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Запрос пуст!", "Ошибка", MessageBoxButtons.OK);
                 return;
             }
             string basename = sql.Substring(4, sql.IndexOf("\r\n") - 4).Trim();
             if (string.IsNullOrEmpty(basename))
             {
-                MessageBox.Show("Выберите базу данных!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Выберите базу данных!", "Ошибка", MessageBoxButtons.OK);
                 return;
             }
 
@@ -182,7 +188,7 @@ namespace SQLCodeHelper
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка выполнения запроса: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Ошибка выполнения запроса: {ex.Message}", "Ошибка", MessageBoxButtons.OK);
             }
         }
         //быстрая работа с данными
@@ -289,6 +295,7 @@ namespace SQLCodeHelper
             else if (e.Node.Tag is TableInfo tableInfo)
             {
                 DataTable data = con.GetTableData(tableInfo.DatabaseName, tableInfo.Name);
+                TableAndKeys.Columns.Clear();
                 TableAndKeys.DataSource = data;
             }
         }
@@ -335,14 +342,14 @@ namespace SQLCodeHelper
             // Простейшая валидация имени
             if (dbName.IndexOfAny(System.IO.Path.GetInvalidFileNameChars()) >= 0 || dbName.Contains(" "))
             {
-                MessageBox.Show("Имя базы данных содержит недопустимые символы или пробелы.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Имя базы данных содержит недопустимые символы или пробелы.", "Ошибка", MessageBoxButtons.OK);
                 return;
             }
 
             if (con.CreateDatabase(dbName))
             {
                 LoadDatabaseTree(); // перезагружаем дерево
-                MessageBox.Show($"База данных '{dbName}' успешно создана.", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($"База данных '{dbName}' успешно создана.", "Успех", MessageBoxButtons.OK);
             }
         }
 
@@ -357,8 +364,7 @@ namespace SQLCodeHelper
             {
                 DialogResult result = MessageBox.Show($"Вы действительно хотите удалить базу данных '{db.Name}'?\nЭто действие необратимо!",
                                                         "Подтверждение удаления",
-                                                        MessageBoxButtons.YesNo,
-                                                        MessageBoxIcon.Warning);
+                                                        MessageBoxButtons.YesNo);
                 if (result == DialogResult.Yes)
                 {
                     if (con.DropDatabase(db.Name))
@@ -367,7 +373,7 @@ namespace SQLCodeHelper
                         // Очищаем отображение, если активная БД была удалена
                         if (labelActionT.Text.Contains(db.Name))
                             labelActionT.Text = "активная база данных: не выбрана";
-                        MessageBox.Show($"База данных '{db.Name}' удалена.", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show($"База данных '{db.Name}' удалена.", "Успех", MessageBoxButtons.OK);
                     }
                 }
             }
@@ -376,8 +382,7 @@ namespace SQLCodeHelper
             {
                 DialogResult result = MessageBox.Show($"Удалить таблицу '{table.Name}' из базы '{table.DatabaseName}'?",
                                                         "Подтверждение удаления",
-                                                        MessageBoxButtons.YesNo,
-                                                        MessageBoxIcon.Warning);
+                                                        MessageBoxButtons.YesNo);
                 if (result == DialogResult.Yes)
                 {
                     if (con.DropTable(table.DatabaseName, table.Name))
@@ -399,13 +404,13 @@ namespace SQLCodeHelper
                             // Просто сбросим источник
                             TableAndKeys.DataSource = null;
                         }
-                        MessageBox.Show($"Таблица '{table.Name}' удалена.", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show($"Таблица '{table.Name}' удалена.", "Успех", MessageBoxButtons.OK);
                     }
                 }
             }
             else
             {
-                MessageBox.Show("Удаление этого элемента не поддерживается.", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Удаление этого элемента не поддерживается.", "Информация", MessageBoxButtons.OK);
             }
         }
         private void ShowDatabaseInfo(DatabaseInfo db)
@@ -441,6 +446,8 @@ namespace SQLCodeHelper
 
         private void Export_Click(object sender, EventArgs e)
         {
+            TableAndKeys.EndEdit();
+            this.ActiveControl = null;
             // Реализация экспорта данных
             if (TableAndKeys.DataSource != null)
             {
@@ -449,6 +456,8 @@ namespace SQLCodeHelper
         }
         private void ExportSQL_Click(object sender, EventArgs e)
         {
+            TableAndKeys.EndEdit();
+            this.ActiveControl = null;
             if (TableAndKeys.DataSource != null && TableAndKeys.DataSource is DataTable dt)
             {
                 // Передаём строку подключения через метод GetConnectionString()
@@ -456,7 +465,7 @@ namespace SQLCodeHelper
             }
             else
             {
-                MessageBox.Show("Нет данных для экспорта.", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Нет данных для экспорта.", "Информация", MessageBoxButtons.OK);
             }
         }
         private void tabControl_DrawItem(Object sender, System.Windows.Forms.DrawItemEventArgs e)
@@ -588,12 +597,12 @@ namespace SQLCodeHelper
             // Защита от удаления важных столбцов (при необходимости)
             if (column.Name == "ID" || column.ReadOnly)
             {
-                MessageBox.Show("Этот столбец нельзя удалить.", "Предупреждение", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Этот столбец нельзя удалить.", "Предупреждение", MessageBoxButtons.OK);
                 return;
             }
 
             DialogResult result = MessageBox.Show($"Удалить столбец '{column.HeaderText}'?", "Подтверждение",
-                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                MessageBoxButtons.YesNo);
             if (result == DialogResult.Yes)
             {
                 if (TableAndKeys.DataSource is DataTable dt && dt.Columns.Contains(column.Name))
@@ -613,7 +622,7 @@ namespace SQLCodeHelper
             if (row.IsNewRow) return; // нельзя удалить строку для новых записей
 
             DialogResult result = MessageBox.Show("Удалить выбранную строку?", "Подтверждение",
-                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                MessageBoxButtons.YesNo);
             if (result == DialogResult.Yes)
             {
                 if (TableAndKeys.DataSource is DataTable dt)

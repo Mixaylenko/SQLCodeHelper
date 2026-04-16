@@ -65,7 +65,7 @@ namespace SQLCodeHelper
 
         private bool ShowError(string message)
         {
-            MessageBox.Show(message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(message, "Ошибка", MessageBoxButtons.OK);
             return true;
         }
     }

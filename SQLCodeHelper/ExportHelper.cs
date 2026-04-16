@@ -35,7 +35,7 @@ public static class ExportHelper
     {
         if (dataTable == null || dataTable.Rows.Count == 0)
         {
-            MessageBox.Show("Нет данных для экспорта.", "Предупреждение", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show("Нет данных для экспорта.", "Предупреждение", MessageBoxButtons.OK);
             return;
         }
 
@@ -50,7 +50,7 @@ public static class ExportHelper
 
             if (string.IsNullOrEmpty(databaseName) || string.IsNullOrEmpty(tableName))
             {
-                MessageBox.Show("Необходимо указать имя базы данных и таблицы.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Необходимо указать имя базы данных и таблицы.", "Ошибка", MessageBoxButtons.OK);
                 return;
             }
 
@@ -63,7 +63,7 @@ public static class ExportHelper
                     // Проверка существования БД
                     if (!DatabaseExists(conn, databaseName))
                     {
-                        MessageBox.Show($"База данных '{databaseName}' не существует.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show($"База данных '{databaseName}' не существует.", "Ошибка", MessageBoxButtons.OK);
                         return;
                     }
 
@@ -85,8 +85,7 @@ public static class ExportHelper
                             DialogResult res = MessageBox.Show(
                                 $"Таблица '{tableName}' уже существует в базе '{databaseName}'. Заменить данные (удалить таблицу и создать заново)?",
                                 "Подтверждение замены",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question);
+                                MessageBoxButtons.YesNo);
                             if (res == DialogResult.Yes)
                             {
                                 replaceTable = true;
@@ -120,12 +119,12 @@ public static class ExportHelper
                     InsertData(conn, tableName, dataTable);
 
                     MessageBox.Show($"Данные успешно экспортированы в таблицу '{tableName}' базы данных '{databaseName}'.",
-                                    "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                    "Успех", MessageBoxButtons.OK);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при экспорте: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Ошибка при экспорте: {ex.Message}", "Ошибка", MessageBoxButtons.OK);
             }
         }
     }
