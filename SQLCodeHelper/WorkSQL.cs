@@ -401,7 +401,7 @@ namespace SQLCodeHelper
                 }
             }
             //Проверка на рассинхронизацию таблиц
-            var mExcept = resultTable.Except(rightParts).ToArray();
+            var mExcept = resultTable.Except(rightKeyCols).ToArray();
             resultTable = resultTable.Except(mExcept).ToArray();
             leftKeyCols = leftKeyCols.Except(mExcept).ToArray();
 

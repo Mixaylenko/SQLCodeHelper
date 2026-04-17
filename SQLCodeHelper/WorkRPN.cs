@@ -66,7 +66,7 @@ namespace SQLCodeHelper
                 {
                     if (mass[t] == "(")
                     {
-                        if (!SymAlf.Contains(mass[t - 1])) 
+                        if (t>0 && !SymAlf.Contains(mass[t - 1])) 
                             RPN(mass, t + 1, mass[t - 1]);
                         else
                             RPN(mass, t + 1, "");
